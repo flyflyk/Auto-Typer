@@ -1,0 +1,42 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Check that the tag matches Cargo.toml
+        shell: pwsh
+        run: |
+          $v = (Select-String -Path Cargo.toml -Pattern '^version\s*=\s*"(.+)"' | Select-Object -First 1).Matches[0].Groups[1].Value
+          if ("v$v" -ne "${{ github.ref_name }}") {
+            Write-Error "Cargo.toml version v$v does not match tag ${{ github.ref_name }}"
+            exit 1
+          }
+
+      - name: Build
+        run: cargo build --release --locked
+
+      - name: Prepare release files
+        shell: pwsh
+        run: |
+          Copy-Item target/release/auto-typer.exe auto-typer.exe
+          $h = (Get-FileHash auto-typer.exe -Algorithm SHA256).Hash.ToLower()
+          Set-Content -Path auto-typer.exe.sha256 -Value "$h  auto-typer.exe" -NoNewline -Encoding ascii
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            auto-typer.exe
+            auto-typer.exe.sha256
+          generate_release_notes: true
