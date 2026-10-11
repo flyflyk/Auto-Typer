@@ -35,6 +35,7 @@ impl Phase {
 pub struct Job {
     pub chars: Vec<char>,
     pub delay_ms: u32,
+    pub shift_gap_ms: u32,
     pub mode: Mode,
     pub countdown_s: u32,
 }
@@ -73,6 +74,7 @@ pub fn spawn(job: Job, phase: Arc<Mutex<Phase>>, stop: Arc<AtomicBool>, ctx: Con
 
         let total = job.chars.len();
         let delay = Duration::from_millis(job.delay_ms as u64);
+        let shift_gap = Duration::from_millis(job.shift_gap_ms as u64);
         let mut last = Instant::now();
         set(Phase::Typing { done: 0, total });
         for (i, &c) in job.chars.iter().enumerate() {
@@ -80,7 +82,7 @@ pub fn spawn(job: Job, phase: Arc<Mutex<Phase>>, stop: Arc<AtomicBool>, ctx: Con
                 set(Phase::Stopped(i));
                 return;
             }
-            send_char(c, job.mode);
+            send_char(c, job.mode, shift_gap);
             if last.elapsed() >= Duration::from_millis(50) {
                 set(Phase::Typing { done: i + 1, total });
                 last = Instant::now();
@@ -103,17 +105,17 @@ fn caps_on() -> bool {
     unsafe { GetKeyState(VK_CAPITAL as i32) & 1 != 0 }
 }
 
-fn send_char(c: char, mode: Mode) {
+fn send_char(c: char, mode: Mode, shift_gap: Duration) {
     match c {
         '\n' => tap_vk(VK_RETURN),
         '\t' => tap_vk(VK_TAB),
         c if c.is_control() => {}
-        c if mode == Mode::Keys && tap_keys(c) => {}
+        c if mode == Mode::Keys && tap_keys(c, shift_gap) => {}
         c => tap_unicode(c),
     }
 }
 
-fn tap_keys(c: char) -> bool {
+fn tap_keys(c: char, shift_gap: Duration) -> bool {
     if !c.is_ascii() {
         return false;
     }
@@ -131,6 +133,18 @@ fn tap_keys(c: char) -> bool {
     if c.is_ascii_alphabetic() && caps_on() {
         shift = !shift;
     }
+
+    if shift && !shift_gap.is_zero() {
+        // Send Shift, the key and the Shift release as separate events with a pause
+        // between them, so slow remote links cannot reorder or squash them.
+        send(&[key(VK_SHIFT, false)]);
+        thread::sleep(shift_gap);
+        send(&[key(vk, false), key(vk, true)]);
+        thread::sleep(shift_gap);
+        send(&[key(VK_SHIFT, true)]);
+        return true;
+    }
+
     let mut seq = Vec::with_capacity(4);
     if shift {
         seq.push(key(VK_SHIFT, false));

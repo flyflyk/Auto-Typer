@@ -24,6 +24,7 @@ enum Src {
 struct App {
     src: Src,
     delay_ms: u32,
+    shift_gap_ms: u32,
     mode: Mode,
     strip: bool,
     phase: Arc<Mutex<Phase>>,
@@ -40,6 +41,7 @@ impl App {
         Self {
             src: Src::Empty,
             delay_ms: 15,
+            shift_gap_ms: 0,
             mode: Mode::Keys,
             strip: false,
             phase: Arc::new(Mutex::new(Phase::Idle)),
@@ -102,6 +104,7 @@ impl App {
         let job = Job {
             chars: typer::prepare(text, self.strip),
             delay_ms: self.delay_ms,
+            shift_gap_ms: self.shift_gap_ms,
             mode: self.mode,
             countdown_s: COUNTDOWN_S,
         };
@@ -156,6 +159,18 @@ impl App {
                 theme::focus_ring(ui, &r);
                 ui.label(
                     RichText::new("Raise this if characters go missing in remote desktops.")
+                        .size(12.0)
+                        .color(TEXT_DIM),
+                );
+                ui.add_space(8.0);
+                ui.label(RichText::new("Shift gap").color(TEXT));
+                let r = ui.add_enabled(
+                    self.mode == Mode::Keys,
+                    egui::Slider::new(&mut self.shift_gap_ms, 0..=100).suffix(" ms"),
+                );
+                theme::focus_ring(ui, &r);
+                ui.label(
+                    RichText::new("Pause between Shift and the letter. Raise this if capital letters come out wrong over chained remote connections. 0 sends them together.")
                         .size(12.0)
                         .color(TEXT_DIM),
                 );

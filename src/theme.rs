@@ -30,7 +30,7 @@ pub fn apply(ctx: &egui::Context) {
     v.extreme_bg_color = BG;
     v.faint_bg_color = PANEL;
     v.selection.bg_fill = ACCENT;
-    v.selection.stroke = Stroke::new(1.0, TEXT);
+    v.selection.stroke = Stroke::new(1.0_f32, TEXT);
     v.window_corner_radius = CornerRadius::same(R_LG);
     v.menu_corner_radius = CornerRadius::same(R_SM);
 
@@ -47,20 +47,20 @@ pub fn apply(ctx: &egui::Context) {
     }
     w.noninteractive.bg_fill = PANEL;
     w.noninteractive.weak_bg_fill = PANEL;
-    w.noninteractive.bg_stroke = Stroke::new(1.0, BORDER);
-    w.noninteractive.fg_stroke = Stroke::new(1.0, TEXT);
+    w.noninteractive.bg_stroke = Stroke::new(1.0_f32, BORDER);
+    w.noninteractive.fg_stroke = Stroke::new(1.0_f32, TEXT);
     w.inactive.bg_fill = CARD;
     w.inactive.weak_bg_fill = CARD;
-    w.inactive.bg_stroke = Stroke::new(1.0, BORDER);
-    w.inactive.fg_stroke = Stroke::new(1.0, TEXT);
+    w.inactive.bg_stroke = Stroke::new(1.0_f32, BORDER);
+    w.inactive.fg_stroke = Stroke::new(1.0_f32, TEXT);
     w.hovered.bg_fill = CARD_HOVER;
     w.hovered.weak_bg_fill = CARD_HOVER;
-    w.hovered.bg_stroke = Stroke::new(1.0, BORDER);
-    w.hovered.fg_stroke = Stroke::new(1.0, TEXT);
+    w.hovered.bg_stroke = Stroke::new(1.0_f32, BORDER);
+    w.hovered.fg_stroke = Stroke::new(1.0_f32, TEXT);
     w.active.bg_fill = CARD_PRESS;
     w.active.weak_bg_fill = CARD_PRESS;
-    w.active.bg_stroke = Stroke::new(1.0, BORDER);
-    w.active.fg_stroke = Stroke::new(1.0, TEXT);
+    w.active.bg_stroke = Stroke::new(1.0_f32, BORDER);
+    w.active.fg_stroke = Stroke::new(1.0_f32, TEXT);
     w.open = w.active;
 
     ctx.style_mut(|s| {
@@ -93,9 +93,9 @@ pub fn load_cjk_font(ctx: &egui::Context) {
 
 pub fn section<R>(ui: &mut Ui, title: &str, hot: bool, add: impl FnOnce(&mut Ui) -> R) -> R {
     let stroke = if hot {
-        Stroke::new(2.0, ACCENT)
+        Stroke::new(2.0_f32, ACCENT)
     } else {
-        Stroke::new(1.0, BORDER)
+        Stroke::new(1.0_f32, BORDER)
     };
     Frame::new()
         .fill(PANEL)
@@ -128,7 +128,7 @@ pub fn focus_ring(ui: &Ui, r: &Response) {
         ui.painter().rect_stroke(
             r.rect.expand(2.0),
             CornerRadius::same(R_SM + 2),
-            Stroke::new(2.0, ACCENT),
+            Stroke::new(2.0_f32, ACCENT),
             StrokeKind::Outside,
         );
     }
@@ -143,7 +143,7 @@ pub fn button(ui: &mut Ui, text: &str, enabled: bool, primary: bool, width: f32)
             w.active.weak_bg_fill = ACCENT_PRESS;
             for s in [&mut w.inactive, &mut w.hovered, &mut w.active] {
                 s.bg_stroke = Stroke::NONE;
-                s.fg_stroke = Stroke::new(1.0, Color32::WHITE);
+                s.fg_stroke = Stroke::new(1.0_f32, Color32::WHITE);
             }
         }
         let label = RichText::new(text).size(14.0).strong();

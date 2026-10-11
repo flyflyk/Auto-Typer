@@ -21,6 +21,7 @@
 | 設定 | 說明 |
 |---|---|
 | Delay per character | 每個字元之間的延遲。遠端桌面掉字時調高，例如 30 ms 以上。 |
+| Shift gap | 大寫字母和符號的 Shift 與按鍵之間的停頓。經過多層遠端連線（例如 AnyDesk 再接遠端桌面）時大小寫會打錯的話，從 20 到 50 ms 開始調高；0 表示一起送出。只在 Keystrokes 模式有效。 |
 | Keystrokes | 模擬實體按鍵，相容遠端桌面、VM、終端機；非 ASCII 字元自動改用 Unicode。 |
 | Unicode | 直接送出 Unicode 字元，支援中文，但部分遠端桌面或 VM 不支援。 |
 | Strip leading indentation | 移除每行行首空白，避免編輯器自動縮排造成縮排累加。 |
