@@ -27,16 +27,35 @@ jobs:
       - name: Build
         run: cargo build --release --locked
 
+      - name: Build installer
+        shell: pwsh
+        run: |
+          $v = "${{ github.ref_name }}".TrimStart('v')
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) {
+            choco install innosetup -y --no-progress
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          & $iscc "/DAppVersion=$v" installer\AutoTyper.iss
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      # auto-typer.exe stays in every release: portable copies and the 0.1.x updater
+      # look for exactly this name. Installed copies use AutoTyper-Setup.exe.
       - name: Prepare release files
         shell: pwsh
         run: |
           Copy-Item target/release/auto-typer.exe auto-typer.exe
-          $h = (Get-FileHash auto-typer.exe -Algorithm SHA256).Hash.ToLower()
-          Set-Content -Path auto-typer.exe.sha256 -Value "$h  auto-typer.exe" -NoNewline -Encoding ascii
+          Copy-Item dist/AutoTyper-Setup.exe AutoTyper-Setup.exe
+          foreach ($f in @("auto-typer.exe", "AutoTyper-Setup.exe")) {
+            $h = (Get-FileHash $f -Algorithm SHA256).Hash.ToLower()
+            Set-Content -Path "$f.sha256" -Value "$h  $f" -NoNewline -Encoding ascii
+          }
 
       - uses: softprops/action-gh-release@v2
         with:
           files: |
+            AutoTyper-Setup.exe
+            AutoTyper-Setup.exe.sha256
             auto-typer.exe
             auto-typer.exe.sha256
           generate_release_notes: true
